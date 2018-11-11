@@ -1,0 +1,264 @@
+'use strict';
+const Alexa = require('alexa-sdk');
+
+const APP_ID = '';
+
+const SKILL_NAME = 'Windy Prairie';
+const RATING = 'Please give us a 5 star rating!';
+const HELP_MESSAGE = 'You can say open Windy Prairie, loop on to loop the sound, or you can say exit' + '\n' + 'What can I help you with?';
+const HELP_REPROMPT = 'Which can I help you with?';
+const STOP_MESSAGE = 'Goodbye! see you soon!';
+const SOUND_PAUSED = 'Sound stopped!';
+const SOUND_RESUMED = 'Sound resumed!';
+const LOOP_ON_MESSAGE = 'Loop, turned on!';
+const LOOP_OFF_MESSAGE = 'Loop, turned off!';
+const SORRY_MESSAGE = 'Sorry, the Windy Prairie is the only track on this skill.';
+const WINDY_URL = 'https://s3.amazonaws.com/soothingsound/windy.mp3';
+const imageObj = {
+        smallImageUrl: 'https://s3.amazonaws.com/soothingsound/windyPrairiesmicon.png',
+        largeImageUrl: 'https://s3.amazonaws.com/soothingsound/windyPrairielicon.png'
+        };
+
+//=========================================================================================================================================
+//=========================================================================================================================================
+
+var goodByes = [
+  'Try another audio skill enable Campfire Embers.',
+  'Try another audio skill enable Cityscape Sounds.',
+  'Try another audio skill enable Harbor Storm.',
+  'Try another audio skill enable Busy Office.',
+  'Try another audio skill enable Spring Time.',
+  'Try another audio skill enable Shoreline Sounds.'
+  ];
+  
+ var pullsArr = goodByes;
+ var pullsIndex = Math.floor(Math.random() * goodByes.length);
+ var randomPulls = pullsArr[pullsIndex];
+ 
+const GIVE_US_RATING ='Hope you are having fun listening to the wind!' + '\n' + 'Thanks for your time and support!' + '\n' + randomPulls;
+
+
+const handlers = {
+    'LaunchRequest': function () {
+    if (supportsDisplay.call(this)||isSimulator.call(this)){
+        var content = {
+              "templateToken" : "windyPrairieDir",
+              "askOrTell" : ":tell",
+              "sessionAttributes": {}
+            };
+             renderTemplate.call(this, content);
+            }
+                 else
+            {
+            const speechOutput = 'Playing Windy Prairie!';
+            const behavior = 'REPLACE_ALL';
+            const url = "https://s3.amazonaws.com/soothingsound/windy.mp3";
+            const token = '1111';
+            const offsetInMilliseconds = 0;
+
+            this.response.speak(speechOutput)
+                        .audioPlayerPlay(behavior, url, token, null, offsetInMilliseconds);
+            this.response.cardRenderer(RATING, GIVE_US_RATING, imageObj);
+            this.emit(':responseReady');
+            }
+    },
+    'playIntent': function () {
+        if (supportsDisplay.call(this)||isSimulator.call(this)) {
+        var content = {
+              "templateToken" : "windyPrairieDir",
+              "askOrTell" : ":tell",
+              "sessionAttributes": {}
+            };
+             renderTemplate.call(this, content);
+            }
+                 else
+            {
+            const speechOutput = 'Playing Windy Prairie!';
+            const behavior = 'REPLACE_ALL';
+            const url = "https://s3.amazonaws.com/soothingsound/windy.mp3";
+            const token = '1111';
+            const offsetInMilliseconds = 0;
+
+            this.response.speak(speechOutput)
+                        .audioPlayerPlay(behavior, url, token, null, offsetInMilliseconds);
+            this.response.cardRenderer(RATING, GIVE_US_RATING, imageObj);
+            this.emit(':responseReady');
+            }
+    },
+    'AMAZON.NextIntent': function(){
+        this.response.speak(SORRY_MESSAGE);
+        this.emit(':responseReady');
+    },
+    'AMAZON.PreviousIntent': function(){
+        this.response.speak(SORRY_MESSAGE);
+        this.emit(':responseReady');
+    },
+     'AMAZON.ResumeIntent': function () {
+        var playBehavior = 'REPLACE_ALL';
+        const token = '1111';
+        this.response.audioPlayerPlay(playBehavior, WINDY_URL, token, null, 0);
+        this.emit(':responseReady');
+    },
+    'AMAZON.StopIntent': function () {
+        this.response.audioPlayerStop();
+        this.response.audioPlayerClearQueue("CLEAR_ALL");
+        this.emit(':responseReady');
+    },
+    'AMAZON.PauseIntent': function () {
+        this.response.audioPlayerStop();
+        this.response.audioPlayerClearQueue("CLEAR_ALL");
+        this.response.speak(SOUND_PAUSED);
+        this.emit(':responseReady');
+    },
+    'AMAZON.LoopOnIntent' : function () {
+        this.attributes['repeat'] = true;
+        this.response.speak(LOOP_ON_MESSAGE);
+        this.emit(':responseReady');
+    },
+     'AMAZON.LoopOffIntent' : function () {
+        this.attributes['repeat'] = false;
+        this.response.speak(LOOP_OFF_MESSAGE);
+        this.emit(':responseReady');
+    },
+    'AMAZON.CancelIntent': function () {
+        this.response.audioPlayerStop();
+        this.response.audioPlayerClearQueue("CLEAR_ALL");
+        this.response.speak(STOP_MESSAGE);
+        this.emit(':responseReady');
+    },
+    'AudioPlayer.ClearQueue' :function(){
+        console.log("clear queue");
+        this.response.audioPlayerClearQueue("CLEAR_ALL");	
+        this.emit(':responseReady');
+    },
+    'PlaybackFailed' : function () {
+        this.response.audioPlayerStop();
+        this.emit(':responseReady');
+    },
+    'SessionEndedRequest': function () {
+        this.response.audioPlayerStop();
+        this.response.audioPlayerClearQueue("CLEAR_ALL");
+        this.emit(':responseReady');
+    },
+    'PlaybackStarted' : function () {
+        console.log('session PlaybackStarted!');
+    },
+    'PlaybackFinished' : function () {
+       console.log('session PlaybackFinished!');
+    },
+    'PlaybackStopped' : function () {
+        console.log('session PlaybackStopped!');
+    },
+    'PlaybackNearlyFinished' : function () {
+        this.attributes['repeat'] = true;
+        const behavior = 'ENQUEUE';
+        const url = "https://s3.amazonaws.com/soothingsound/windy.mp3";
+        const token = '1111';
+        const expectedPreviousToken = '1111';
+        const offsetInMilliseconds = 0;
+        console.log("before audio player called in nearly finish");
+
+        this.response.audioPlayerPlay(behavior, url, token, expectedPreviousToken, offsetInMilliseconds);
+        this.emit(':responseReady');
+    },
+    'AMAZON.HelpIntent': function () {
+        const speechOutput = HELP_MESSAGE;
+        const reprompt = HELP_REPROMPT;
+        this.response.speak(speechOutput).listen(reprompt);
+        this.response.cardRenderer(RATING, GIVE_US_RATING, imageObj);
+        this.emit(':responseReady');
+    },
+    'Unhandled' : function () {
+        const speechOutput = HELP_MESSAGE;
+        const reprompt = HELP_REPROMPT;
+        this.response.speak(speechOutput).listen(reprompt);
+        this.response.cardRenderer(RATING, GIVE_US_RATING, imageObj);
+        this.emit(':responseReady');
+    }
+};
+
+exports.handler = function(event, context, callback) {
+    var alexa = Alexa.handler(event, context, callback);
+    alexa.appId = APP_ID;
+    alexa.dynamoDBTableName = "skillsReview";
+    alexa.registerHandlers(handlers);
+    alexa.execute();
+};
+
+/////////
+function supportsDisplay() {
+  var hasDisplay =
+    this.event.context &&
+    this.event.context.System &&
+    this.event.context.System.device &&
+    this.event.context.System.device.supportedInterfaces &&
+    this.event.context.System.device.supportedInterfaces.Display;
+
+  return hasDisplay;
+}
+
+function isSimulator() {
+  var isSimulator = !this.event.context;
+  return isSimulator;
+}
+//////////
+
+function renderTemplate (content) {
+
+   switch(content.templateToken) {
+
+        case "windyPrairieDir": {
+            var responses = {
+                "version": "1.0",
+                "outputSpeech": {"type":"PlainText","text": "Now Playing"},
+                "card": {
+                   "type": "Standard",
+                  "title": "Please give us a 5 star rating!",
+                "content": "Windy Prairie",
+                "image": {
+                        "smallImageUrl": "https://s3.amazonaws.com/soothingsound/windyPrairiesmicon.png",
+                        "largeImageUrl": "https://s3.amazonaws.com/soothingsound/windyPrairielicon.png"
+                        }
+                },
+                "reprompt": "",
+                "shouldEndSession": true,
+                "sessionAttributes": content.sessionAttributes,
+                "response": {
+                    "directives": [
+                         {
+                            "type": "AudioPlayer.Play",
+                    "playBehavior": "REPLACE_ALL",
+                       "audioItem": {
+                                "stream": {
+                                   "url": "https://s3.amazonaws.com/soothingsound/windy.mp3",
+                                 "token": "1111",
+                                "offsetInMilliseconds": 0
+                            },
+                        "metadata": {
+                           "title": "Please give us a 5 star rating!",
+                        "subtitle": "GCNES Creations",
+                                "art": {
+                                 "sources": [
+                                        {
+                                        "url": "https://s3.amazonaws.com/soothingsound/windyPrairielicon.png"
+                                    }
+                                ]
+                            },
+                                "backgroundImage": {
+                                    "sources": [
+                            {
+                                        "url": "https://s3.amazonaws.com/soothingsound/windyPrairielicon.png"
+                                    }
+                                ]
+                        },
+          }
+        }
+      }
+    ]
+  },
+           };
+           this.context.succeed(responses);
+           break;
+        }
+    }
+}
